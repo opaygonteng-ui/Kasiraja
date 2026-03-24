@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bubur Ayam Mang Opay</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;margin:0;padding:12px;display:flex;justify-content:center}
+.box{background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.1);width:100%;max-width:320px}
+h2{text-align:center;margin:0 0 10px}
+.row{display:flex;align-items:center;gap:6px;margin:6px 0}
+.row input{flex:1;min-width:0}
+input{padding:6px;font-size:14px;box-sizing:border-box}
+#hargaMenu{width:90px;flex:unset}
+.qty{width:55px;flex:unset}
+button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;font-size:13px}
+.btnAdd{width:100%;background:#28a745;color:#fff;margin-top:6px}
+.btnEdit{background:#ffc107}
+.btnDel{background:#dc3545;color:#fff}
+.btnMain{width:100%;background:#007bff;color:#fff;margin-top:8px}
+.totalLive{margin-top:10px;font-weight:bold;text-align:center}
+.struk{position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;padding:16px;box-sizing:border-box;display:none;font-family:monospace;font-size:14px;overflow:auto}
+.menuList{margin-top:10px;border-top:1px solid #ccc;padding-top:8px}
+.small{font-size:13px}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>Bubur Ayam Mang Opay</h2><div class="row">
+<input id="namaMenu" placeholder="Nama menu">
+<input id="hargaMenu" type="number" placeholder="Harga">
+</div>
+<button class="btnAdd" id="btnTambahMenu">Tambah Menu</button><div class="menuList" id="menuList"></div><div class="row">Bayar <input id="bayar" type="number"></div><div class="totalLive" id="totalLive">Total: Rp 0</div><button class="btnMain" id="btnCetak">Tampilkan Struk</button>
+
+<hr>
+<div id="laporanHarian" style="font-size:13px;margin-top:6px"></div>
+<button class="btnMain" id="btnResetLaporan" style="background:#6c757d">Reset Laporan Harian</button><div class="struk" id="areaStruk"></div>
+<audio id="snd" src="cring.mp3" preload="auto"></audio>
+</div><script>
+function el(id){return document.getElementById(id)}
+
+let menu = JSON.parse(localStorage.getItem('menuKasir')||'[]')
+let laporan = JSON.parse(localStorage.getItem('laporanHarian')||'{}')
+
+function simpanMenu(){
+localStorage.setItem('menuKasir', JSON.stringify(menu))
+}
+
+function simpanLaporan(){
+localStorage.setItem('laporanHarian', JSON.stringify(laporan))
+}
+
+function renderMenu(){
+let html=""
+menu.forEach((m,i)=>{
+html += `<div class="row small">
+<span style="flex:1">${m.nama} (Rp ${m.harga.toLocaleString('id-ID')})</span>
+<input class="qty" type="number" min="0" data-i="${i}">
+<button class="btnEdit" data-edit="${i}">Edit</button>
+<button class="btnDel" data-del="${i}">X</button>
+</div>`
+})
+
+el('menuList').innerHTML = html
+
+let qtyInputs = el('menuList').querySelectorAll('input.qty')
+qtyInputs.forEach((inp,idx)=>{
+  inp.addEventListener('input', updateTotalLive)
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault()
+      if(idx < qtyInputs.length-1) qtyInputs[idx+1].focus()
+      else el('bayar').focus()
+    }
+  })
+})
+
+el('menuList').querySelectorAll('[data-edit]').forEach(btn=>{
+  btn.onclick = ()=>editMenu(parseInt(btn.dataset.edit))
+})
+
+el('menuList').querySelectorAll('[data-del]').forEach(btn=>{
+  btn.onclick = ()=>hapusMenu(parseInt(btn.dataset.del))
+})
+
+updateTotalLive()
+}
+
+function tambahMenu(){
+let nama = el('namaMenu').value.trim()
+let harga = parseInt(el('hargaMenu').value)
+if(!nama || !harga) return alert('Isi nama & harga menu')
+menu.push({nama,harga})
+simpanMenu()
+el('namaMenu').value=''
+el('hargaMenu').value=''
+el('namaMenu').focus()
+renderMenu()
+}
+
+function editMenu(i){
+let namaBaru = prompt('Edit nama menu:', menu[i].nama)
+if(namaBaru===null) return
+let hargaBaru = prompt('Edit harga menu:', menu[i].harga)
+if(hargaBaru===null) return
+hargaBaru = parseInt(hargaBaru)
+if(!namaBaru || !hargaBaru) return alert('Data tidak valid')
+menu[i] = {nama:namaBaru, harga:hargaBaru}
+simpanMenu()
+renderMenu()
+}
+
+function hapusMenu(i){
+if(!confirm('Hapus menu ini?')) return
+menu.splice(i,1)
+simpanMenu()
+renderMenu()
+}
+
+function hitungTotal(){
+let total=0
+el('menuList').querySelectorAll('input.qty').forEach(inp=>{
+let i=parseInt(inp.dataset.i)
+let qty=parseInt(inp.value)||0
+ total+=qty*menu[i].harga
+})
+return total
+}
+
+function updateTotalLive(){
+el('totalLive').innerHTML='Total: Rp '+hitungTotal().toLocaleString('id-ID')
+}
+
+function buatRincian(){
+let html=""
+el('menuList').querySelectorAll('input.qty').forEach(inp=>{
+let i=parseInt(inp.dataset.i)
+let qty=parseInt(inp.value)||0
+if(qty>0){
+html+=`${menu[i].nama} x${qty} = Rp ${(qty*menu[i].harga).toLocaleString('id-ID')}<br>`
+}
+})
+return html||"Tidak ada item<br>"
+}
+
+function updateLaporan(){
+let html = "<b>Laporan Hari Ini</b><br>"
+let totalUang = 0
+
+Object.keys(laporan).forEach(nama=>{
+let data = laporan[nama]
+let uang = data.qty * data.harga
+ totalUang += uang
+html += `${nama} : ${data.qty} porsi (Rp ${uang.toLocaleString('id-ID')})<br>`
+})
+
+html += `<b>Total uang : Rp ${totalUang.toLocaleString('id-ID')}</b>`
+el('laporanHarian').innerHTML = html
+}
+
+function tampilkanStruk(){
+let snd = el('snd'); if(snd){snd.currentTime=0; snd.play().catch(()=>{});} 
+let total=hitungTotal()
+let bayar=parseInt(el('bayar').value)||0
+let kembali=bayar-total
+
+let now=new Date()
+let tanggal=now.toLocaleDateString('id-ID')
+let jam=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
+
+
+
+let html=`<div style='text-align:center;font-weight:bold;font-size:18px'>Bubur Ayam Mang Opay</div>
+<div style='text-align:center;font-size:12px;margin-bottom:8px'>${tanggal} ${jam}</div><hr>
+${buatRincian()}
+<hr>Total : Rp ${total.toLocaleString('id-ID')}<br>
+Bayar : Rp ${bayar.toLocaleString('id-ID')}<br>
+Kembali : Rp ${kembali.toLocaleString('id-ID')}<br>
+<hr>
+<div style='display:flex;gap:8px;margin-top:10px'>
+<button onclick="koreksi()" style='flex:1;padding:12px;font-size:16px;background:#ffc107;border:none;border-radius:8px'>KOREKSI</button>
+<button onclick="lunas()" style='flex:1;padding:12px;font-size:16px;background:#28a745;color:#fff;border:none;border-radius:8px'>LUNAS</button>
+</div>`
+
+let area=el('areaStruk')
+area.innerHTML=html
+area.style.display='block'
+}
+
+function koreksi(){
+// hanya tutup struk tanpa reset
+el('areaStruk').style.display='none'
+}
+
+function lunas(){
+// simpan ke laporan setelah transaksi benar-benar lunas
+el('menuList').querySelectorAll('input.qty').forEach(inp=>{
+let i=parseInt(inp.dataset.i)
+let qty=parseInt(inp.value)||0
+if(qty>0){
+let nama = menu[i].nama
+if(!laporan[nama]) laporan[nama] = {qty:0, harga:menu[i].harga}
+laporan[nama].qty += qty
+}
+})
+
+simpanLaporan()
+updateLaporan()
+
+let snd = el('snd'); if(snd){snd.currentTime=0; snd.play().catch(()=>{});} 
+el('bayar').value=''
+document.querySelectorAll('.qty').forEach(i=>i.value='')
+updateTotalLive()
+el('areaStruk').style.display='none'
+}
+
+function resetLaporan(){
+if(!confirm('Reset laporan hari ini?')) return
+laporan = {}
+simpanLaporan()
+updateLaporan()
+}
+
+el('btnTambahMenu').onclick = tambahMenu
+el('btnCetak').onclick = tampilkanStruk
+el('btnResetLaporan').onclick = resetLaporan
+
+el('namaMenu').addEventListener('keydown', e=>{if(e.key==='Enter'){e.preventDefault();el('hargaMenu').focus()}})
+el('hargaMenu').addEventListener('keydown', e=>{if(e.key==='Enter'){e.preventDefault();tambahMenu()}})
+el('bayar').addEventListener('keydown', e=>{if(e.key==='Enter'){e.preventDefault();tampilkanStruk()}})
+
+renderMenu()
+updateLaporan()
+</script></body>
+</html>
