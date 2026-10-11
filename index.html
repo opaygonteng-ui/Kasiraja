@@ -1,243 +1,571 @@
-<!DOCTYPE html><html lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bubur Ayam Mang Opay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#171717">
+<title>Kasir Mang Opay</title>
 <style>
-body{font-family:Arial;background:#f4f4f4;margin:0;padding:12px;display:flex;justify-content:center}
-.box{background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.1);width:100%;max-width:320px}
-h2{text-align:center;margin:0 0 10px}
-.row{display:flex;align-items:center;gap:6px;margin:6px 0}
-.row input{flex:1;min-width:0}
-input{padding:6px;font-size:14px;box-sizing:border-box}
-#hargaMenu{width:90px;flex:unset}
-.qty{width:55px;flex:unset}
-button{padding:6px 10px;border:none;border-radius:6px;cursor:pointer;font-size:13px}
-.btnAdd{width:100%;background:#28a745;color:#fff;margin-top:6px}
-.btnEdit{background:#ffc107}
-.btnDel{background:#dc3545;color:#fff}
-.btnMain{width:100%;background:#007bff;color:#fff;margin-top:8px}
-.totalLive{margin-top:10px;font-weight:bold;text-align:center}
-.struk{position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;padding:16px;box-sizing:border-box;display:none;font-family:monospace;font-size:14px;overflow:auto}
-.menuList{margin-top:10px;border-top:1px solid #ccc;padding-top:8px}
-.small{font-size:13px}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f3f3;color:#171717;font-family:Arial,sans-serif}
+header{background:#171717;color:white;padding:18px;text-align:center}
+header h1{margin:0;font-size:22px}
+header p{margin:6px 0 0;font-size:13px}
+main{max-width:760px;margin:auto;padding:12px}
+.panel{background:white;border:1px solid #ddd;border-radius:12px;padding:14px;margin-bottom:12px}
+h2{font-size:17px;margin:0 0 12px}
+.menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.menu button{padding:13px 8px;background:white;border:1px solid #ccc;border-radius:9px;text-align:left;min-height:70px;color:#171717}
+.menu b,.menu span{display:block}
+.menu span{margin-top:6px;color:#555}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee}
+.qty{display:flex;align-items:center;gap:7px}
+.qty button{width:30px;height:30px;border:1px solid #ccc;background:white;border-radius:6px;font-size:18px}
+.total{display:flex;justify-content:space-between;border-top:2px solid #171717;margin-top:12px;padding-top:12px;font-size:20px;font-weight:bold}
+label{display:block;margin-top:12px;font-size:13px}
+input,select{width:100%;padding:12px;margin-top:5px;border:1px solid #ccc;border-radius:8px;font-size:16px;background:white;color:#171717}
+button{cursor:pointer;font-size:14px}
+.btn{width:100%;padding:13px;border:0;border-radius:8px;margin-top:10px;background:#171717;color:white;font-weight:bold}
+.btn2{padding:11px;border:1px solid #bbb;background:white;border-radius:8px;color:#171717}
+.actions{display:flex;gap:8px;margin-top:10px}
+.actions button{flex:1}
+.note{font-size:12px;color:#666;line-height:1.5}
+#receipt{display:none;border:1px dashed #888;padding:15px;font-family:monospace;font-size:13px;background:white}
+.center{text-align:center}
+.line{display:flex;justify-content:space-between;gap:10px;margin:7px 0}
+hr{border:0;border-top:1px dashed #777;margin:12px 0}
+.history{padding:10px 0;border-bottom:1px solid #eee;font-size:13px;line-height:1.6}
+.empty{color:#777;padding:12px 0}
+.admin-row{border-bottom:1px solid #eee;padding:10px 0}
+.admin-actions{display:flex;gap:6px;margin-top:7px}
+.admin-actions button{flex:1}
+.hidden{display:none!important}
+@media print{
+ body{background:white}
+ header,main>.panel:not(#receiptPanel){display:none!important}
+ main{padding:0;margin:0}
+ #receiptPanel{display:block!important;border:0;padding:0}
+ #receipt{display:block!important;border:0;width:72mm;max-width:100%;margin:auto}
+ .no-print{display:none!important}
+}
 </style>
 </head>
 <body>
-<div class="box">
-<h2>Bubur Ayam Mang Opay</h2><div class="row">
-<input id="namaMenu" placeholder="Nama menu">
-<input id="hargaMenu" type="number" placeholder="Harga">
-</div>
-<button class="btnAdd" id="btnTambahMenu">Tambah Menu</button><div class="menuList" id="menuList"></div><div class="row">Bayar <input id="bayar" type="number"></div><div class="totalLive" id="totalLive">Total: Rp 0</div><button class="btnMain" id="btnCetak">Tampilkan Struk</button>
 
-<hr>
-<div id="laporanHarian" style="font-size:13px;margin-top:6px"></div>
-<button class="btnMain" id="btnResetLaporan" style="background:#6c757d">Reset Laporan Harian</button><div class="struk" id="areaStruk"></div>
-<audio id="snd" src="cring.mp3" preload="auto"></audio>
-</div><script>
-function el(id){return document.getElementById(id)}
+<header>
+ <h1>BUBUR AYAM MANG OPAY</h1>
+ <p>Kasir dan Struk Pembayaran</p>
+</header>
 
-let menu = JSON.parse(localStorage.getItem('menuKasir')||'[]')
-let laporan = JSON.parse(localStorage.getItem('laporanHarian')||'{}')
+<main>
+<section class="panel">
+ <h2>1. Pilih Menu</h2>
+ <div class="menu" id="menu"></div>
+ <p class="note">Tekan menu untuk menambah pesanan.</p>
+</section>
 
-function simpanMenu(){
-localStorage.setItem('menuKasir', JSON.stringify(menu))
+<section class="panel">
+ <h2>2. Keranjang Belanja</h2>
+ <div id="cart"></div>
+ <div class="total">
+  <span>TOTAL</span><span id="total">Rp0</span>
+ </div>
+
+ <label>Metode Pembayaran</label>
+ <select id="method" onchange="togglePaidField()">
+  <option value="Tunai">Tunai</option>
+  <option value="QRIS">QRIS</option>
+ </select>
+
+ <div id="cashFields">
+  <label>Uang Diterima</label>
+  <input id="paid" type="number" min="0"
+   inputmode="numeric" placeholder="Contoh: 20000">
+ </div>
+
+ <div class="actions">
+  <button class="btn2" onclick="clearCart()">Kosongkan</button>
+  <button class="btn" onclick="checkout()">Buat Struk</button>
+ </div>
+
+ <p class="note">
+ QRIS belum terhubung otomatis ke DANA.
+ Pembayaran QRIS harus diverifikasi secara terpisah.
+ </p>
+</section>
+
+<section class="panel" id="receiptPanel">
+ <h2 class="no-print">3. Struk Pembayaran</h2>
+
+ <div id="receipt">
+  <h3 class="center">BUBUR AYAM MANG OPAY</h3>
+  <p class="center">Struk Pembayaran</p>
+  <hr>
+  <div id="receiptMeta"></div>
+  <hr>
+  <div id="receiptItems"></div>
+  <hr>
+  <div class="line">
+   <b>TOTAL</b><b id="receiptTotal"></b>
+  </div>
+  <div id="receiptCashDetails"></div>
+  
+  <!-- Gambar QRIS di dalam struk -->
+  <div id="receiptQrisDetails" class="hidden center" style="margin: 12px 0;">
+   <hr>
+   <p style="margin-bottom: 6px; font-weight: bold;">Scan QRIS Pembayaran:</p>
+   <img src="qris.png" alt="QRIS Mang Opay" style="max-width: 260px; width: 100%; border-radius: 6px; border: 1px solid #ccc;">
+  </div>
+
+  <div class="line">
+   <span>Metode</span><span id="receiptMethod"></span>
+  </div>
+  <div class="line">
+   <span>Status</span><span id="receiptStatus"></span>
+  </div>
+  <hr>
+  <p class="center">
+   Terima kasih 🙏<br>
+   Sarapan ringan, nutrisi lengkap
+  </p>
+ </div>
+
+ <div class="actions no-print">
+  <button class="btn2" onclick="printReceipt()">Cetak / Simpan PDF</button>
+  <button class="btn2" onclick="shareReceipt()">Bagikan Struk</button>
+ </div>
+</section>
+
+<section class="panel">
+ <h2>4. Kelola Menu dan Harga</h2>
+ <p class="note">Tambah, edit, atau hapus menu. Perubahan tersimpan di browser HP.</p>
+ <div id="menuAdmin"></div>
+ <hr>
+
+ <h3 id="formTitle" style="font-size:15px">Tambah Menu Baru</h3>
+ <input id="editId" type="hidden">
+
+ <label>Nama Menu</label>
+ <input id="newName" type="text" placeholder="Contoh: Bubur Spesial">
+
+ <label>Harga (rupiah)</label>
+ <input id="newPrice" type="number" min="0"
+  step="500" inputmode="numeric" placeholder="Contoh: 12000">
+
+ <div class="actions">
+  <button class="btn" onclick="saveMenu()">Simpan Menu</button>
+  <button class="btn2" onclick="cancelEdit()">Batal / Reset Form</button>
+ </div>
+</section>
+
+<section class="panel">
+ <h2>5. Riwayat Transaksi</h2>
+ <div id="history"></div>
+
+ <div class="actions">
+  <button class="btn2" onclick="exportCSV()">Ekspor CSV</button>
+  <button class="btn2" onclick="clearHistory()">Reset Riwayat</button>
+ </div>
+
+ <p class="note">
+ Reset riwayat tidak menghapus daftar menu dan harga.
+ Ekspor riwayat secara berkala untuk cadangan.
+ </p>
+</section>
+</main>
+
+<script>
+const DEFAULT_MENU=[
+ {id:"polos",name:"Bubur Polos",price:5000},
+ {id:"ori",name:"Bubur Original",price:9000},
+ {id:"sate",name:"Sate Ati/Ampela",price:2000},
+ {id:"telur",name:"Telur",price:3000},
+ {id:"komplit",name:"Bubur Komplit",price:15000}
+];
+
+function readJSON(key,fallback){
+ try{
+  const value=localStorage.getItem(key);
+  return value===null?fallback:JSON.parse(value);
+ }catch(e){return fallback}
 }
 
-function simpanLaporan(){
-localStorage.setItem('laporanHarian', JSON.stringify(laporan))
+let MENU=readJSON("mangOpayMenu",DEFAULT_MENU);
+if(!Array.isArray(MENU)) MENU=DEFAULT_MENU.map(x=>({...x}));
+
+let cart={};
+let lastReceipt=null;
+
+function rupiah(n){
+ return new Intl.NumberFormat("id-ID",{
+  style:"currency",
+  currency:"IDR",
+  maximumFractionDigits:0
+ }).format(n);
+}
+
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g,c=>({
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
+ }[c]));
+}
+
+function saveMenuData(){
+ localStorage.setItem("mangOpayMenu",JSON.stringify(MENU));
+}
+
+function getTotal(){
+ return MENU.reduce((sum,p)=>{
+  return sum+p.price*(cart[p.id]||0);
+ },0);
 }
 
 function renderMenu(){
-let html=""
-menu.forEach((m,i)=>{
-html += `<div class="row small">
-<span style="flex:1">${m.nama} (Rp ${m.harga.toLocaleString('id-ID')})</span>
-<input class="qty" type="number" min="0" data-i="${i}">
-<button class="btnEdit" data-edit="${i}">Edit</button>
-<button class="btnDel" data-del="${i}">X</button>
-</div>`
-})
-
-el('menuList').innerHTML = html
-
-let qtyInputs = el('menuList').querySelectorAll('input.qty')
-qtyInputs.forEach((inp,idx)=>{
-  inp.addEventListener('input', updateTotalLive)
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){
-      e.preventDefault()
-      if(idx < qtyInputs.length-1) qtyInputs[idx+1].focus()
-      else el('bayar').focus()
-    }
-  })
-})
-
-el('menuList').querySelectorAll('[data-edit]').forEach(btn=>{
-  btn.onclick = ()=>editMenu(parseInt(btn.dataset.edit))
-})
-
-el('menuList').querySelectorAll('[data-del]').forEach(btn=>{
-  btn.onclick = ()=>hapusMenu(parseInt(btn.dataset.del))
-})
-
-updateTotalLive()
+ document.getElementById("menu").innerHTML=MENU.map(p=>`
+  <button onclick="addItem('${p.id}')">
+   <b>${escapeHTML(p.name)}</b>
+   <span>${rupiah(p.price)}</span>
+  </button>
+ `).join("");
 }
 
-function tambahMenu(){
-let nama = el('namaMenu').value.trim()
-let harga = parseInt(el('hargaMenu').value)
-if(!nama || !harga) return alert('Isi nama & harga menu')
-menu.push({nama,harga})
-simpanMenu()
-el('namaMenu').value=''
-el('hargaMenu').value=''
-el('namaMenu').focus()
-renderMenu()
+function addItem(id){
+ cart[id]=(cart[id]||0)+1;
+ renderCart();
 }
 
-function editMenu(i){
-let namaBaru = prompt('Edit nama menu:', menu[i].nama)
-if(namaBaru===null) return
-let hargaBaru = prompt('Edit harga menu:', menu[i].harga)
-if(hargaBaru===null) return
-hargaBaru = parseInt(hargaBaru)
-if(!namaBaru || !hargaBaru) return alert('Data tidak valid')
-menu[i] = {nama:namaBaru, harga:hargaBaru}
-simpanMenu()
-renderMenu()
+function changeQty(id,amount){
+ cart[id]=(cart[id]||0)+amount;
+ if(cart[id]<=0) delete cart[id];
+ renderCart();
 }
 
-function hapusMenu(i){
-if(!confirm('Hapus menu ini?')) return
-menu.splice(i,1)
-simpanMenu()
-renderMenu()
+function renderCart(){
+ const items=MENU.filter(p=>cart[p.id]);
+
+ document.getElementById("cart").innerHTML=items.length?
+ items.map(p=>`
+  <div class="item">
+   <div>
+    <b>${escapeHTML(p.name)}</b><br>
+    <small>${rupiah(p.price)} × ${cart[p.id]}</small>
+   </div>
+   <div class="qty">
+    <button onclick="changeQty('${p.id}',-1)">−</button>
+    <b>${cart[p.id]}</b>
+    <button onclick="changeQty('${p.id}',1)">+</button>
+   </div>
+  </div>
+ `).join(""):'<div class="empty">Keranjang masih kosong.</div>';
+
+ document.getElementById("total").textContent=rupiah(getTotal());
 }
 
-function hitungTotal(){
-let total=0
-el('menuList').querySelectorAll('input.qty').forEach(inp=>{
-let i=parseInt(inp.dataset.i)
-let qty=parseInt(inp.value)||0
- total+=qty*menu[i].harga
-})
-return total
+function renderMenuAdmin(){
+ document.getElementById("menuAdmin").innerHTML=MENU.length?
+ MENU.map(p=>`
+  <div class="admin-row">
+   <b>${escapeHTML(p.name)}</b> — ${rupiah(p.price)}
+   <div class="admin-actions">
+    <button class="btn2" onclick="editMenu('${p.id}')">Edit</button>
+    <button class="btn2" onclick="deleteMenu('${p.id}')">Hapus</button>
+   </div>
+  </div>
+ `).join(""):'<div class="empty">Belum ada menu.</div>';
 }
 
-function updateTotalLive(){
-el('totalLive').innerHTML='Total: Rp '+hitungTotal().toLocaleString('id-ID')
+function saveMenu(){
+ const id=document.getElementById("editId").value;
+ const name=document.getElementById("newName").value.trim();
+ const price=Number(document.getElementById("newPrice").value);
+
+ if(!name){
+  alert("Masukkan nama menu.");
+  return;
+ }
+
+ if(document.getElementById("newPrice").value===""||
+    !Number.isFinite(price)||price<0||!Number.isInteger(price)){
+  alert("Masukkan harga berupa angka rupiah yang valid.");
+  return;
+ }
+
+ if(id){
+  const p=MENU.find(x=>x.id===id);
+  if(!p){alert("Menu tidak ditemukan.");return}
+  p.name=name;
+  p.price=price;
+ }else{
+  MENU.push({
+   id:"menu_"+Date.now()+"_"+Math.random().toString(36).slice(2,7),
+   name:name,
+   price:price
+  });
+ }
+
+ saveMenuData();
+ cancelEdit();
+ renderMenu();
+ renderMenuAdmin();
+ renderCart();
 }
 
-function buatRincian(){
-let html=""
-el('menuList').querySelectorAll('input.qty').forEach(inp=>{
-let i=parseInt(inp.dataset.i)
-let qty=parseInt(inp.value)||0
-if(qty>0){
-html+=`${menu[i].nama} x${qty} = Rp ${(qty*menu[i].harga).toLocaleString('id-ID')}<br>`
-}
-})
-return html||"Tidak ada item<br>"
-}
+function editMenu(id){
+ const p=MENU.find(x=>x.id===id);
+ if(!p)return;
 
-function updateLaporan(){
-let html = "<b>Laporan Hari Ini</b><br>"
-let totalUang = 0
+ document.getElementById("editId").value=p.id;
+ document.getElementById("newName").value=p.name;
+ document.getElementById("newPrice").value=p.price;
+ document.getElementById("formTitle").textContent="Edit Menu: "+p.name;
 
-Object.keys(laporan).forEach(nama=>{
-let data = laporan[nama]
-let uang = data.qty * data.harga
- totalUang += uang
-html += `${nama} : ${data.qty} porsi (Rp ${uang.toLocaleString('id-ID')})<br>`
-})
-
-html += `<b>Total uang : Rp ${totalUang.toLocaleString('id-ID')}</b>`
-el('laporanHarian').innerHTML = html
+ document.getElementById("newName").scrollIntoView({
+  behavior:"smooth",block:"center"
+ });
 }
 
-function tampikanStruk(){
-let snd = el('snd'); if(snd){snd.currentTime=0; snd.play().catch(()=>{});} 
-let total=hitungTotal()
-let bayar=parseInt(el('bayar').value)||0
-let kembali=bayar-total
-
-let now=new Date()
-let tanggal=now.toLocaleDateString('id-ID')
-let jam=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-
-
-let noTelp = "085724113767" 
-let fileQR = "qris.png" 
-
-let html=`<div style='text-align:center;font-weight:bold;font-size:18px'>Bubur Ayam Mang Opay</div>
-<div style='text-align:center;font-size:12px;margin-bottom:2px'>Telp/DANA: ${noTelp}</div>
-<div style='text-align:center;font-size:12px;margin-bottom:8px'>${tanggal} ${jam}</div><hr>
-${buatRincian()}
-<hr>Total : Rp ${total.toLocaleString('id-ID')}<br>
-Bayar : Rp ${bayar.toLocaleString('id-ID')}<br>
-Kembali : Rp ${kembali.toLocaleString('id-ID')}<br>
-<hr>
-<div style='text-align:center;margin:12px 0'>
-  <img src="${fileQR}" alt="QR Code Pembayaran" style="width:250px;height:250px;object-fit:contain;"><br>
-  <span style="font-size:15px;color:#555;font-weight:bold;">Bubur Ayam Mang Opay</span>
-</div>
-<hr>
-<div style='font-size:11px;line-height:1.4;margin:8px 0'>
-  
-<hr>
-<div style='display:flex;gap:8px;margin-top:10px'>
-<button onclick="koreksi()" style='flex:1;padding:12px;font-size:16px;background:#ffc107;border:none;border-radius:8px'>KOREKSI</button>
-<button onclick="lunas()" style='flex:1;padding:12px;font-size:16px;background:#28a745;color:#fff;border:none;border-radius:8px'>LUNAS</button>
-</div>`
-
-let area=el('areaStruk')
-area.innerHTML=html
-area.style.display='block'
+function cancelEdit(){
+ document.getElementById("editId").value="";
+ document.getElementById("newName").value="";
+ document.getElementById("newPrice").value="";
+ document.getElementById("formTitle").textContent="Tambah Menu Baru";
 }
 
-function koreksi(){
-el('areaStruk').style.display='none'
+function deleteMenu(id){
+ const p=MENU.find(x=>x.id===id);
+ if(!p)return;
+
+ if(!confirm('Hapus menu "'+p.name+'"?'))return;
+
+ MENU=MENU.filter(x=>x.id!==id);
+ delete cart[id];
+
+ saveMenuData();
+ cancelEdit();
+ renderMenu();
+ renderMenuAdmin();
+ renderCart();
 }
 
-function lunas(){
-el('menuList').querySelectorAll('input.qty').forEach(inp=>{
-let i=parseInt(inp.dataset.i)
-let qty=parseInt(inp.value)||0
-if(qty>0){
-let nama = menu[i].nama
-if(!laporan[nama]) laporan[nama] = {qty:0, harga:menu[i].harga}
-laporan[nama].qty += qty
-}
-})
-
-simpanLaporan()
-updateLaporan()
-
-let snd = el('snd'); if(snd){snd.currentTime=0; snd.play().catch(()=>{});} 
-el('bayar').value=''
-document.querySelectorAll('.qty').forEach(i=>i.value='')
-updateTotalLive()
-el('areaStruk').style.display='none'
+function togglePaidField(){
+ const isCash = document.getElementById("method").value === "Tunai";
+ document.getElementById("cashFields").classList.toggle("hidden", !isCash);
 }
 
-function resetLaporan(){
-if(!confirm('Reset laporan hari ini?')) return
-laporan = {}
-simpanLaporan()
-updateLaporan()
+function loadHistory(){
+ const h=readJSON("mangOpayHistory",[]);
+ return Array.isArray(h)?h:[];
 }
 
-el('btnTambahMenu').onclick = tambahMenu
-el('btnCetak').onclick = tampikanStruk
-el('btnResetLaporan').onclick = resetLaporan
+function saveHistory(data){
+ localStorage.setItem("mangOpayHistory",JSON.stringify(data));
+}
 
-el('namaMenu').addEventListener('keydown', e=>{if(e.key==='Enter'){e.preventDefault();el('hargaMenu').focus()}})
-el('hargaMenu').addEventListener('keydown', e=>{if(e.key==='Enter'){e.preventDefault();tambahMenu()}})
-el('bayar').addEventListener('keydown', e=>{if(e.key==='Enter'){e.preventDefault();tampikanStruk()}})
+function renderHistory(){
+ const h=loadHistory();
 
-renderMenu()
-updateLaporan()
-</script></body>
+ document.getElementById("history").innerHTML=h.length?
+ h.slice().reverse().map(r=>`
+  <div class="history">
+   <b>${escapeHTML(r.id)}</b><br>
+   ${escapeHTML(r.date)}<br>
+   Total: ${rupiah(r.total)}<br>
+   ${escapeHTML(r.method)} — ${escapeHTML(r.status)}
+   ${r.method==="Tunai"&&Number.isFinite(r.change)?
+    "<br>Kembalian: "+rupiah(r.change):""}
+  </div>
+ `).join(""):'<div class="empty">Belum ada transaksi.</div>';
+}
+
+function checkout(){
+ const total=getTotal();
+
+ if(total<=0){
+  alert("Pilih menu terlebih dahulu.");
+  return;
+ }
+
+ const method=document.getElementById("method").value;
+ const paidInput=document.getElementById("paid").value;
+ const paid=method==="Tunai"?Number(paidInput||0):null;
+
+ let status="MENUNGGU VERIFIKASI QRIS";
+ let change=null;
+
+ if(method==="Tunai"){
+  if(paidInput===""||paid<total){
+   alert("Uang diterima harus sama dengan atau lebih besar dari total belanja.");
+   return;
+  }
+
+  change=paid-total;
+  status="LUNAS - TUNAI DICATAT KASIR";
+ }
+
+ const now=new Date();
+ const id="OP-"+now.getFullYear()+
+  String(now.getMonth()+1).padStart(2,"0")+
+  String(now.getDate()).padStart(2,"0")+"-"+
+  String(now.getTime()).slice(-6);
+
+ const receipt={
+  id:id,
+  date:now.toLocaleString("id-ID"),
+  items:MENU.filter(p=>cart[p.id]).map(p=>({
+   name:p.name,
+   price:p.price,
+   qty:cart[p.id]
+  })),
+  total:total,
+  method:method,
+  status:status,
+  paid:paid,
+  change:change
+ };
+
+ lastReceipt=receipt;
+
+ document.getElementById("receiptMeta").innerHTML=`
+  <div class="line">
+   <span>No.</span><span>${escapeHTML(id)}</span>
+  </div>
+  <div class="line">
+   <span>Waktu</span><span>${escapeHTML(receipt.date)}</span>
+  </div>
+ `;
+
+ document.getElementById("receiptItems").innerHTML=
+ receipt.items.map(i=>`
+  <div>${escapeHTML(i.name)} × ${i.qty}</div>
+  <div class="line">
+   <span>${rupiah(i.price)} × ${i.qty}</span>
+   <span>${rupiah(i.price*i.qty)}</span>
+  </div>
+ `).join("");
+
+ document.getElementById("receiptTotal").textContent=rupiah(total);
+ document.getElementById("receiptMethod").textContent=method;
+ document.getElementById("receiptStatus").textContent=status;
+
+ document.getElementById("receiptCashDetails").innerHTML=
+ method==="Tunai"?`
+  <div class="line">
+   <span>Uang diterima</span><span>${rupiah(paid)}</span>
+  </div>
+  <div class="line">
+   <b>KEMBALIAN</b><b>${rupiah(change)}</b>
+  </div>
+ `:"";
+
+ document.getElementById("receiptQrisDetails").classList.toggle("hidden", method !== "QRIS");
+
+ document.getElementById("receipt").style.display="block";
+
+ const h=loadHistory();
+ h.push(receipt);
+ saveHistory(h);
+ renderHistory();
+
+ document.getElementById("receiptPanel").scrollIntoView({
+  behavior:"smooth"
+ });
+}
+
+function clearCart(){
+ cart={};
+ document.getElementById("paid").value="";
+ renderCart();
+}
+
+function printReceipt(){
+ if(!lastReceipt){
+  alert("Buat struk terlebih dahulu.");
+  return;
+ }
+ window.print();
+}
+
+async function shareReceipt(){
+ if(!lastReceipt){
+  alert("Buat struk terlebih dahulu.");
+  return;
+ }
+
+ const r=lastReceipt;
+
+ let text="BUBUR AYAM MANG OPAY\n"+
+ "Struk: "+r.id+"\n"+r.date+
+ "\n--------------------\n"+
+ r.items.map(i=>i.name+" x"+i.qty+" "+rupiah(i.price*i.qty)).join("\n")+
+ "\n--------------------\nTOTAL: "+rupiah(r.total);
+
+ if(r.method==="Tunai"){
+  text+="\nUang diterima: "+rupiah(r.paid)+
+   "\nKembalian: "+rupiah(r.change);
+ }
+
+ text+="\nMetode: "+r.method+
+  "\nStatus: "+r.status+"\nTerima kasih.";
+
+ try{
+  if(navigator.share){
+   await navigator.share({title:"Struk Mang Opay",text:text});
+  }else{
+   prompt("Salin teks struk berikut:",text);
+  }
+ }catch(e){}
+}
+
+function exportCSV(){
+ const h=loadHistory();
+
+ if(!h.length){
+  alert("Belum ada transaksi.");
+  return;
+ }
+
+ const rows=[
+  ["ID","Tanggal","Total","Metode","Status","Uang Diterima","Kembalian","Rincian"],
+  ...h.map(r=>[
+   r.id,r.date,r.total,r.method,r.status,
+   r.paid??"",r.change??"",
+   r.items.map(i=>i.name+" x"+i.qty).join("; ")
+  ])
+ ];
+
+ const csv=rows.map(row=>
+  row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")
+ ).join("\r\n");
+
+ const blob=new Blob(["\ufeff"+csv],{
+  type:"text/csv;charset=utf-8;"
+ });
+
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download="riwayat-mang-opay.csv";
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+function clearHistory(){
+ if(confirm("Yakin ingin menghapus SEMUA riwayat transaksi? Daftar menu dan harga tidak akan terhapus.")){
+  saveHistory([]);
+  renderHistory();
+  alert("Riwayat transaksi berhasil direset.");
+ }
+}
+
+renderMenu();
+renderCart();
+renderMenuAdmin();
+renderHistory();
+togglePaidField();
+</script>
+</body>
 </html>
