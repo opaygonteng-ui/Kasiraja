@@ -3,49 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#171717">
+<meta name="theme-color" content="#1b4332">
 <title>Kasir Mang Opay</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f3f3f3;color:#171717;font-family:Arial,sans-serif}
-header{background:#171717;color:white;padding:18px;text-align:center}
-header h1{margin:0;font-size:22px}
-header p{margin:6px 0 0;font-size:13px}
-main{max-width:760px;margin:auto;padding:12px}
-.panel{background:white;border:1px solid #ddd;border-radius:12px;padding:14px;margin-bottom:12px}
-h2{font-size:17px;margin:0 0 12px}
-.menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.menu button{padding:13px 8px;background:white;border:1px solid #ccc;border-radius:9px;text-align:left;min-height:70px;color:#171717}
-.menu b,.menu span{display:block}
-.menu span{margin-top:6px;color:#555}
-.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee}
-.qty{display:flex;align-items:center;gap:7px}
-.qty button{width:30px;height:30px;border:1px solid #ccc;background:white;border-radius:6px;font-size:18px}
-.total{display:flex;justify-content:space-between;border-top:2px solid #171717;margin-top:12px;padding-top:12px;font-size:20px;font-weight:bold}
-label{display:block;margin-top:12px;font-size:13px}
-input,select{width:100%;padding:12px;margin-top:5px;border:1px solid #ccc;border-radius:8px;font-size:16px;background:white;color:#171717}
+body{margin:0;background:#f4f9f4;color:#1b4332;font-family:Arial,sans-serif}
+header{background:#1b4332;color:white;padding:14px;text-align:center;position:relative}
+header h1{margin:0;font-size:20px;letter-spacing:0.5px}
+header p{margin:4px 0 0;font-size:12px;color:#d8f3dc}
+.settings-btn{position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.15);border:1px solid #a3b899;color:white;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+.settings-btn:hover{background:rgba(255,255,255,0.25)}
+main{max-width:960px;margin:auto;padding:10px}
+.panel{background:white;border:1px solid #c8e6c9;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 2px 4px rgba(27,67,50,0.03)}
+h2{font-size:16px;margin:0 0 10px;color:#2d6a4f}
+
+/* Layout dua kolom untuk Menu & Keranjang dalam satu layar */
+.order-container{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.order-container{grid-template-columns:1fr}}
+
+.menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:280px;overflow-y:auto;padding-right:2px}
+@media(max-width:700px){.menu{max-height:220px}}
+
+.menu button{padding:10px 6px;background:#f8fdf8;border:1px solid #a3b899;border-radius:8px;text-align:left;min-height:55px;color:#1b4332;cursor:pointer}
+.menu button:active{background:#e8f5e9}
+.menu b,.menu span{display:block;font-size:13px}
+.menu span{margin-top:4px;color:#40916c;font-size:12px}
+
+#cartContainer{max-height:190px;overflow-y:auto;padding-right:2px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #e2ece9;font-size:13px}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:26px;height:26px;border:1px solid #a3b899;background:white;border-radius:6px;font-size:16px;color:#1b4332;cursor:pointer}
+.total{display:flex;justify-content:space-between;border-top:2px solid #2d6a4f;margin-top:8px;padding-top:8px;font-size:18px;font-weight:bold;color:#1b4332}
+
+label{display:block;margin-top:8px;font-size:12px;color:#2d6a4f;font-weight:bold}
+input,select{width:100%;padding:9px;margin-top:4px;border:1px solid #a3b899;border-radius:8px;font-size:15px;background:white;color:#1b4332}
+input:focus,select:focus{outline:none;border-color:#2d6a4f;box-shadow:0 0 0 2px rgba(45,106,79,0.15)}
 button{cursor:pointer;font-size:14px}
-.btn{width:100%;padding:13px;border:0;border-radius:8px;margin-top:10px;background:#171717;color:white;font-weight:bold}
-.btn2{padding:11px;border:1px solid #bbb;background:white;border-radius:8px;color:#171717}
-.actions{display:flex;gap:8px;margin-top:10px}
+.btn{width:100%;padding:11px;border:0;border-radius:8px;margin-top:8px;background:#2d6a4f;color:white;font-weight:bold}
+.btn:active{background:#1b4332}
+.btn2{padding:10px;border:1px solid #a3b899;background:white;border-radius:8px;color:#1b4332}
+.btn2:active{background:#e8f5e9}
+.actions{display:flex;gap:6px;margin-top:8px}
 .actions button{flex:1}
-.note{font-size:12px;color:#666;line-height:1.5}
-#receipt{display:none;border:1px dashed #888;padding:15px;font-family:monospace;font-size:13px;background:white}
+.note{font-size:11px;color:#52796f;line-height:1.4}
+
+/* Sistem Halaman & Posisi Tengah untuk Struk */
+.page-view{display:block}
+.hidden-page{display:none!important}
+
+#receiptPage .panel {
+ max-width: 420px;
+ margin: 20px auto;
+}
+
+#receipt{border:1px dashed #52796f;padding:12px;font-family:monospace;font-size:12px;background:white;color:#1b4332}
 .center{text-align:center}
-.line{display:flex;justify-content:space-between;gap:10px;margin:7px 0}
-hr{border:0;border-top:1px dashed #777;margin:12px 0}
-.history{padding:10px 0;border-bottom:1px solid #eee;font-size:13px;line-height:1.6}
-.empty{color:#777;padding:12px 0}
-.admin-row{border-bottom:1px solid #eee;padding:10px 0}
-.admin-actions{display:flex;gap:6px;margin-top:7px}
+.line{display:flex;justify-content:space-between;gap:10px;margin:5px 0}
+hr{border:0;border-top:1px dashed #a3b899;margin:10px 0}
+.history{padding:8px 0;border-bottom:1px solid #e2ece9;font-size:12px;line-height:1.5}
+.empty{color:#748a82;padding:10px 0;font-size:13px;text-align:center}
+.admin-row{border-bottom:1px solid #e2ece9;padding:8px 0;font-size:13px}
+.admin-actions{display:flex;gap:6px;margin-top:6px}
 .admin-actions button{flex:1}
 .hidden{display:none!important}
+
 @media print{
  body{background:white}
- header,main>.panel:not(#receiptPanel){display:none!important}
+ header,main>div:not(#receiptPage){display:none!important}
  main{padding:0;margin:0}
- #receiptPanel{display:block!important;border:0;padding:0}
- #receipt{display:block!important;border:0;width:72mm;max-width:100%;margin:auto}
+ #receiptPage{display:block!important}
+ #receiptPage .panel{border:0;box-shadow:none;margin:0 auto;padding:0;max-width:72mm}
+ #receipt{border:0;width:72mm;max-width:100%;margin:auto}
  .no-print{display:none!important}
 }
 </style>
@@ -55,123 +83,153 @@ hr{border:0;border-top:1px dashed #777;margin:12px 0}
 <header>
  <h1>BUBUR AYAM MANG OPAY</h1>
  <p>Kasir dan Struk Pembayaran</p>
+ <button class="settings-btn" onclick="switchPage('adminPage')">⚙️</button>
 </header>
 
 <main>
-<section class="panel">
- <h2>1. Pilih Menu</h2>
- <div class="menu" id="menu"></div>
- <p class="note">Tekan menu untuk menambah pesanan.</p>
-</section>
+<!-- HALAMAN 1: KASIR UTAMA -->
+<div id="cashierPage" class="page-view">
+ <div class="order-container">
+  <section class="panel" style="margin-bottom:0;">
+   <h2>1. Pilih Menu</h2>
+   <div class="menu" id="menu"></div>
+   <p class="note" style="margin-top:8px;">Tekan menu untuk menambah pesanan.</p>
+  </section>
 
-<section class="panel">
- <h2>2. Keranjang Belanja</h2>
- <div id="cart"></div>
- <div class="total">
-  <span>TOTAL</span><span id="total">Rp0</span>
+  <section class="panel" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:space-between;">
+   <div>
+    <h2>2. Keranjang Belanja</h2>
+    <div id="cartContainer">
+     <div id="cart"></div>
+    </div>
+   </div>
+
+   <div>
+    <div class="total">
+     <span>TOTAL</span><span id="total">Rp0</span>
+    </div>
+
+    <label>Metode Pembayaran</label>
+    <select id="method" onchange="togglePaidField()">
+     <option value="QRIS" selected>QRIS</option>
+     <option value="Tunai">Tunai</option>
+    </select>
+
+    <div id="cashFields" class="hidden">
+     <label>Uang Diterima</label>
+     <input id="paid" type="number" min="0" inputmode="numeric" value="50000" placeholder="Contoh: 50000">
+    </div>
+
+    <div class="actions">
+     <button class="btn2" onclick="clearCart()">Kosongkan</button>
+     <button class="btn" onclick="checkout()">Buat Struk</button>
+    </div>
+
+    <p class="note" style="margin-top:6px;">
+     QRIS belum terhubung otomatis ke DANA. Verifikasi terpisah.
+    </p>
+   </div>
+  </section>
  </div>
 
- <label>Metode Pembayaran</label>
- <select id="method" onchange="togglePaidField()">
-  <option value="Tunai">Tunai</option>
-  <option value="QRIS">QRIS</option>
- </select>
+ <section class="panel" style="margin-top:10px;">
+  <h2>5. Riwayat Transaksi</h2>
+  <div id="history"></div>
 
- <div id="cashFields">
-  <label>Uang Diterima</label>
-  <input id="paid" type="number" min="0"
-   inputmode="numeric" placeholder="Contoh: 20000">
- </div>
-
- <div class="actions">
-  <button class="btn2" onclick="clearCart()">Kosongkan</button>
-  <button class="btn" onclick="checkout()">Buat Struk</button>
- </div>
-
- <p class="note">
- QRIS belum terhubung otomatis ke DANA.
- Pembayaran QRIS harus diverifikasi secara terpisah.
- </p>
-</section>
-
-<section class="panel" id="receiptPanel">
- <h2 class="no-print">3. Struk Pembayaran</h2>
-
- <div id="receipt">
-  <h3 class="center">BUBUR AYAM MANG OPAY</h3>
-  <p class="center">Struk Pembayaran</p>
-  <hr>
-  <div id="receiptMeta"></div>
-  <hr>
-  <div id="receiptItems"></div>
-  <hr>
-  <div class="line">
-   <b>TOTAL</b><b id="receiptTotal"></b>
-  </div>
-  <div id="receiptCashDetails"></div>
-  
-  <!-- Gambar QRIS di dalam struk -->
-  <div id="receiptQrisDetails" class="hidden center" style="margin: 12px 0;">
-   <hr>
-   <p style="margin-bottom: 6px; font-weight: bold;">Scan QRIS Pembayaran:</p>
-   <img src="qris.png" alt="QRIS Mang Opay" style="max-width: 260px; width: 100%; border-radius: 6px; border: 1px solid #ccc;">
+  <div class="actions">
+   <button class="btn2" onclick="exportCSV()">Ekspor CSV</button>
+   <button class="btn2" onclick="clearHistory()">Reset Riwayat</button>
   </div>
 
-  <div class="line">
-   <span>Metode</span><span id="receiptMethod"></span>
-  </div>
-  <div class="line">
-   <span>Status</span><span id="receiptStatus"></span>
-  </div>
-  <hr>
-  <p class="center">
-   Terima kasih 🙏<br>
-   Sarapan ringan, nutrisi lengkap
+  <p class="note">
+   Reset riwayat tidak menghapus daftar menu dan harga. Ekspor berkala untuk cadangan.
   </p>
- </div>
+ </section>
+</div>
 
- <div class="actions no-print">
-  <button class="btn2" onclick="printReceipt()">Cetak / Simpan PDF</button>
-  <button class="btn2" onclick="shareReceipt()">Bagikan Struk</button>
- </div>
-</section>
+<!-- HALAMAN 2: STRUK PEMBAYARAN -->
+<div id="receiptPage" class="page-view hidden-page">
+ <section class="panel">
+  <h2>3. Struk Pembayaran</h2>
 
-<section class="panel">
- <h2>4. Kelola Menu dan Harga</h2>
- <p class="note">Tambah, edit, atau hapus menu. Perubahan tersimpan di browser HP.</p>
- <div id="menuAdmin"></div>
- <hr>
+  <div id="receipt">
+   <h3 class="center">BUBUR AYAM MANG OPAY</h3>
+   <p class="center">Struk Pembayaran</p>
+   <hr>
+   <div id="receiptMeta"></div>
+   <hr>
+   <div id="receiptItems"></div>
+   <hr>
+   <div class="line">
+    <b>TOTAL</b><b id="receiptTotal"></b>
+   </div>
+   <div id="receiptCashDetails"></div>
+   
+   <!-- Gambar QRIS di dalam struk -->
+   <div id="receiptQrisDetails" class="hidden center" style="margin: 10px 0;">
+    <hr>
+    <p style="margin-bottom: 6px; font-weight: bold;">Scan QRIS Pembayaran:</p>
+    <img id="receiptQrisImg" src="" alt="QRIS Mang Opay" style="max-width: 250px; width: 100%; border-radius: 6px; border: 1px solid #a3b899;">
+   </div>
 
- <h3 id="formTitle" style="font-size:15px">Tambah Menu Baru</h3>
- <input id="editId" type="hidden">
+   <div class="line">
+    <span>Metode</span><span id="receiptMethod"></span>
+   </div>
+   <div class="line">
+    <span>Status</span><span id="receiptStatus"></span>
+   </div>
+   <hr>
+   <p class="center">
+    Terima kasih 🙏<br>
+    Sarapan ringan, nutrisi lengkap
+   </p>
+  </div>
 
- <label>Nama Menu</label>
- <input id="newName" type="text" placeholder="Contoh: Bubur Spesial">
+  <div class="actions no-print" style="margin-top: 15px;">
+   <button class="btn" onclick="finishAndPrintReceipt()" style="margin-top:0;">Cetak / Simpan PDF</button>
+   <button class="btn2" onclick="shareReceipt()">Bagikan Struk</button>
+   <button class="btn2" onclick="backToCashierKeepingCart()">Kembali ke Kasir</button>
+  </div>
+ </section>
+</div>
 
- <label>Harga (rupiah)</label>
- <input id="newPrice" type="number" min="0"
-  step="500" inputmode="numeric" placeholder="Contoh: 12000">
+<!-- HALAMAN 3: PENGATURAN / KELOLA MENU & QRIS -->
+<div id="adminPage" class="page-view hidden-page">
+ <section class="panel" style="max-width:600px; margin:20px auto;">
+  <h2>4. Pengaturan QRIS & Menu</h2>
+  <p class="note">Atur gambar QR Code dan kelola menu toko Anda.</p>
 
- <div class="actions">
-  <button class="btn" onclick="saveMenu()">Simpan Menu</button>
-  <button class="btn2" onclick="cancelEdit()">Batal / Reset Form</button>
- </div>
-</section>
+  <label>Upload / Ganti Gambar QRIS</label>
+  <input id="qrisImageInput" type="file" accept="image/*" onchange="handleQrisUpload(event)">
+  <div style="margin-top: 8px; text-align: center;">
+   <img id="adminQrisPreview" src="" alt="Preview QRIS" style="max-width: 140px; width: 100%; border-radius: 6px; border: 1px solid #a3b899; display: none;">
+  </div>
+  <button class="btn2" onclick="removeQrisImage()" style="width:100%; margin-top:6px;">Hapus Gambar QRIS</button>
 
-<section class="panel">
- <h2>5. Riwayat Transaksi</h2>
- <div id="history"></div>
+  <hr style="margin: 15px 0;">
 
- <div class="actions">
-  <button class="btn2" onclick="exportCSV()">Ekspor CSV</button>
-  <button class="btn2" onclick="clearHistory()">Reset Riwayat</button>
- </div>
+  <h3>Kelola Menu dan Harga</h3>
+  <div id="menuAdmin"></div>
+  <hr>
 
- <p class="note">
- Reset riwayat tidak menghapus daftar menu dan harga.
- Ekspor riwayat secara berkala untuk cadangan.
- </p>
-</section>
+  <h3 id="formTitle" style="font-size:15px; color:#2d6a4f;">Tambah Menu Baru</h3>
+  <input id="editId" type="hidden">
+
+  <label>Nama Menu</label>
+  <input id="newName" type="text" placeholder="Contoh: Bubur Spesial">
+
+  <label>Harga (rupiah)</label>
+  <input id="newPrice" type="number" min="0" step="500" inputmode="numeric" placeholder="Contoh: 12000">
+
+  <div class="actions">
+   <button class="btn" onclick="saveMenu()">Simpan Menu</button>
+   <button class="btn2" onclick="cancelEdit()">Batal / Reset Form</button>
+  </div>
+
+  <button class="btn2" onclick="backToCashierKeepingCart()" style="width:100%; margin-top:15px;">← Kembali ke Kasir</button>
+ </section>
+</div>
+
 </main>
 
 <script>
@@ -193,8 +251,26 @@ function readJSON(key,fallback){
 let MENU=readJSON("mangOpayMenu",DEFAULT_MENU);
 if(!Array.isArray(MENU)) MENU=DEFAULT_MENU.map(x=>({...x}));
 
+let qrisImage = localStorage.getItem("mangOpayQrisImg") || "";
+
 let cart={};
 let lastReceipt=null;
+
+function switchPage(pageId){
+ document.getElementById("cashierPage").classList.add("hidden-page");
+ document.getElementById("receiptPage").classList.add("hidden-page");
+ document.getElementById("adminPage").classList.add("hidden-page");
+
+ document.getElementById(pageId).classList.remove("hidden-page");
+ window.scrollTo(0, 0);
+ if(pageId === 'adminPage') {
+  renderAdminQrisPreview();
+ }
+}
+
+function backToCashierKeepingCart(){
+ switchPage("cashierPage");
+}
 
 function rupiah(n){
  return new Intl.NumberFormat("id-ID",{
@@ -278,6 +354,41 @@ function renderMenuAdmin(){
  `).join(""):'<div class="empty">Belum ada menu.</div>';
 }
 
+function handleQrisUpload(event){
+ const file = event.target.files[0];
+ if(!file) return;
+
+ const reader = new FileReader();
+ reader.onload = function(e){
+  qrisImage = e.target.result;
+  localStorage.setItem("mangOpayQrisImg", qrisImage);
+  renderAdminQrisPreview();
+  alert("Gambar QRIS berhasil disimpan!");
+ };
+ reader.readAsDataURL(file);
+}
+
+function renderAdminQrisPreview(){
+ const imgPreview = document.getElementById("adminQrisPreview");
+ if(qrisImage){
+  imgPreview.src = qrisImage;
+  imgPreview.style.display = "inline-block";
+ }else{
+  imgPreview.src = "";
+  imgPreview.style.display = "none";
+ }
+}
+
+function removeQrisImage(){
+ if(confirm("Hapus gambar QRIS yang tersimpan?")){
+  qrisImage = "";
+  localStorage.removeItem("mangOpayQrisImg");
+  document.getElementById("qrisImageInput").value = "";
+  renderAdminQrisPreview();
+  alert("Gambar QRIS dihapus.");
+ }
+}
+
 function saveMenu(){
  const id=document.getElementById("editId").value;
  const name=document.getElementById("newName").value.trim();
@@ -352,8 +463,12 @@ function deleteMenu(id){
 }
 
 function togglePaidField(){
- const isCash = document.getElementById("method").value === "Tunai";
+ const method = document.getElementById("method").value;
+ const isCash = method === "Tunai";
  document.getElementById("cashFields").classList.toggle("hidden", !isCash);
+ if(isCash && document.getElementById("paid").value === ""){
+  document.getElementById("paid").value = "50000";
+ }
 }
 
 function loadHistory(){
@@ -461,32 +576,45 @@ function checkout(){
   </div>
  `:"";
 
- document.getElementById("receiptQrisDetails").classList.toggle("hidden", method !== "QRIS");
+ const qrisDetails = document.getElementById("receiptQrisDetails");
+ const qrisImgEl = document.getElementById("receiptQrisImg");
+ if(method === "QRIS" && qrisImage){
+  qrisImgEl.src = qrisImage;
+  qrisDetails.classList.remove("hidden");
+ } else {
+  qrisDetails.classList.add("hidden");
+ }
 
- document.getElementById("receipt").style.display="block";
+ // Pindah ke halaman struk pembayaran
+ switchPage("receiptPage");
+}
 
+function finishAndPrintReceipt(){
+ if(!lastReceipt){
+  alert("Struk belum tersedia.");
+  return;
+ }
+
+ // Catat ke riwayat
  const h=loadHistory();
- h.push(receipt);
+ h.push(lastReceipt);
  saveHistory(h);
  renderHistory();
 
- document.getElementById("receiptPanel").scrollIntoView({
-  behavior:"smooth"
- });
+ // Kosongkan keranjang dan input bayar
+ clearCart();
+
+ // Buka dialog print/PDF
+ window.print();
+
+ // Kembali ke halaman kasir
+ switchPage("cashierPage");
 }
 
 function clearCart(){
  cart={};
- document.getElementById("paid").value="";
+ document.getElementById("paid").value="50000";
  renderCart();
-}
-
-function printReceipt(){
- if(!lastReceipt){
-  alert("Buat struk terlebih dahulu.");
-  return;
- }
- window.print();
 }
 
 async function shareReceipt(){
