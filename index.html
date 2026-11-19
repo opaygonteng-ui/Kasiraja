@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#1b4332">
 <title>Kasir Mang Opay</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f4f9f4;color:#1b4332;font-family:Arial,sans-serif}
@@ -30,7 +31,7 @@ h3{font-size:15px}
 .qty button{width:26px;height:26px;border:1px solid #a3b899;background:white;border-radius:6px;font-size:16px;color:#1b4332}
 .total{display:flex;justify-content:space-between;border-top:2px solid #2d6a4f;margin-top:8px;padding-top:8px;font-size:18px;font-weight:bold}
 label{display:block;margin-top:8px;font-size:12px;color:#2d6a4f;font-weight:bold}
-input,select{width:100%;padding:9px;margin-top:4px;border:1px solid #a3b899;border-radius:8px;font-size:15px;background:white;color:#1b4332}
+input{width:100%;padding:9px;margin-top:4px;border:1px solid #a3b899;border-radius:8px;font-size:15px;background:white;color:#1b4332}
 button{cursor:pointer;font-size:14px}
 .btn{width:100%;padding:11px;border:0;border-radius:8px;margin-top:8px;background:#2d6a4f;color:white;font-weight:bold}
 .btn2{padding:10px;border:1px solid #a3b899;background:white;border-radius:8px;color:#1b4332}
@@ -50,7 +51,29 @@ hr{border:0;border-top:1px dashed #a3b899;margin:10px 0}
 .admin-actions button{flex:1}
 .empty{color:#748a82;padding:10px 0;font-size:13px;text-align:center}
 
-/* PILIHAN NOMINAL UANG TUNAI */
+/* PILIHAN PEMBAYARAN */
+.payment-options{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:8px;
+ margin-top:8px;
+}
+.payment-btn{
+ padding:14px 8px;
+ border:1px solid #a3b899;
+ border-radius:9px;
+ background:#f8fdf8;
+ color:#1b4332;
+ font-weight:bold;
+ font-size:15px;
+}
+.payment-btn.active{
+ background:#2d6a4f;
+ color:white;
+ border:2px solid #1b4332;
+}
+
+/* PILIHAN NOMINAL TUNAI */
 .cash-presets{
  display:grid;
  grid-template-columns:1fr 1fr;
@@ -88,6 +111,7 @@ hr{border:0;border-top:1px dashed #a3b899;margin:10px 0}
 }
 </style>
 </head>
+
 <body>
 
 <audio id="printSound" src="print.m4a" preload="auto"></audio>
@@ -100,8 +124,12 @@ hr{border:0;border-top:1px dashed #a3b899;margin:10px 0}
 </header>
 
 <main>
+
+<!-- HALAMAN KASIR -->
 <div id="cashierPage" class="page-view">
+
  <div class="order-container">
+
   <section class="panel">
    <h2>1. Pilih Menu</h2>
    <div class="menu" id="menu"></div>
@@ -110,126 +138,271 @@ hr{border:0;border-top:1px dashed #a3b899;margin:10px 0}
 
   <section class="panel">
    <h2>2. Keranjang Belanja</h2>
-   <div id="cartContainer"><div id="cart"></div></div>
-   <div class="total"><span>TOTAL</span><span id="total">Rp0</span></div>
 
+   <div id="cartContainer">
+    <div id="cart"></div>
+   </div>
+
+   <div class="total">
+    <span>TOTAL</span>
+    <span id="total">Rp0</span>
+   </div>
+
+   <!-- PILIHAN METODE PEMBAYARAN -->
    <label>Metode Pembayaran</label>
-   <select id="method" onchange="togglePaidField()">
-    <option value="QRIS" selected>QRIS</option>
-    <option value="Tunai">Tunai</option>
-   </select>
 
+   <div class="payment-options">
+
+    <button type="button"
+     id="btnTunai"
+     class="payment-btn"
+     onclick="selectPayment('Tunai')">
+     💵 TUNAI
+    </button>
+
+    <button type="button"
+     id="btnQRIS"
+     class="payment-btn active"
+     onclick="selectPayment('QRIS')">
+     ▦ QRIS
+    </button>
+
+   </div>
+
+   <input type="hidden" id="method" value="QRIS">
+
+   <!-- PEMBAYARAN TUNAI -->
    <div id="cashFields" class="hidden">
-    <label>Uang Diterima</label>
-    <input id="paid" type="number" min="0" inputmode="numeric" value="50000">
 
-    <!-- PILIHAN KELIPATAN NOMINAL -->
+    <label>Uang Diterima</label>
+
+    <input
+     id="paid"
+     type="number"
+     min="0"
+     inputmode="numeric"
+     value="50000"
+     placeholder="Masukkan uang diterima">
+
     <div class="cash-presets">
+
      <button type="button" onclick="setCashPreset(50000)">
       Rp50.000
       <small>Kelipatan 50 ribu</small>
      </button>
+
      <button type="button" onclick="setCashPreset(100000)">
       Rp100.000
       <small>Kelipatan 100 ribu</small>
      </button>
+
     </div>
 
-    <p class="note">Nominal otomatis disesuaikan dengan total belanja.</p>
+    <p class="note">
+     Nominal otomatis disesuaikan dengan total belanja.
+     Kamu juga bisa mengetik nominal sendiri.
+    </p>
+
    </div>
 
    <div class="actions">
     <button class="btn2" onclick="clearCart()">Kosongkan</button>
     <button class="btn" onclick="checkout()">Buat Struk</button>
    </div>
-   <p class="note">QRIS belum terhubung otomatis ke DANA. Verifikasi pembayaran secara terpisah.</p>
+
+   <p class="note">
+    QRIS belum terhubung otomatis ke DANA.
+    Verifikasi pembayaran secara terpisah.
+   </p>
+
   </section>
+
  </div>
 
+ <!-- RIWAYAT TRANSAKSI -->
  <section class="panel">
   <h2>Riwayat Transaksi</h2>
+
   <div id="history"></div>
+
   <div class="actions">
    <button class="btn2" onclick="exportCSV()">Ekspor CSV</button>
    <button class="btn2" onclick="clearHistory()">Reset Riwayat</button>
   </div>
+
   <p class="note">Ekspor berkala untuk cadangan.</p>
  </section>
+
 </div>
 
+<!-- HALAMAN STRUK -->
 <div id="receiptPage" class="page-view hidden-page">
+
  <section class="panel">
+
   <h2>3. Struk Pembayaran</h2>
+
   <div id="receipt">
-   <h3 class="center" id="receiptStoreName">BUBUR AYAM MANG OPAY</h3>
+
+   <h3 class="center" id="receiptStoreName">
+    BUBUR AYAM MANG OPAY
+   </h3>
+
    <p class="center">Struk Pembayaran</p>
+
    <hr>
+
    <div id="receiptMeta"></div>
+
    <hr>
+
    <div id="receiptItems"></div>
+
    <hr>
-   <div class="line"><b>TOTAL</b><b id="receiptTotal"></b></div>
+
+   <div class="line">
+    <b>TOTAL</b>
+    <b id="receiptTotal"></b>
+   </div>
+
    <div id="receiptCashDetails"></div>
 
    <div id="receiptQrisDetails" class="hidden center">
     <hr>
     <p><b>Scan QRIS Pembayaran:</b></p>
-    <img id="receiptQrisImg" alt="QRIS toko" style="max-width:250px;width:100%;border:1px solid #a3b899">
+
+    <img id="receiptQrisImg"
+     alt="QRIS toko"
+     style="max-width:250px;width:100%;border:1px solid #a3b899">
    </div>
 
-   <div class="line"><span>Metode</span><span id="receiptMethod"></span></div>
-   <div class="line"><span>Status</span><span id="receiptStatus"></span></div>
+   <div class="line">
+    <span>Metode</span>
+    <span id="receiptMethod"></span>
+   </div>
+
+   <div class="line">
+    <span>Status</span>
+    <span id="receiptStatus"></span>
+   </div>
+
    <hr>
-   <p class="center">Terima kasih 🙏<br>Sarapan ringan, nutrisi lengkap</p>
+
+   <p class="center">
+    Terima kasih 🙏<br>
+    Sarapan ringan, nutrisi lengkap
+   </p>
+
   </div>
 
   <div class="actions no-print">
-   <button class="btn" onclick="finishAndPrintReceipt()">Cetak / Simpan PDF</button>
-   <button class="btn2" onclick="shareReceipt()">Bagikan Struk</button>
-   <button class="btn2" onclick="returnToCashierWithSound()">Kembali ke Kasir</button>
+
+   <button class="btn" onclick="finishAndPrintReceipt()">
+    Cetak / Simpan PDF
+   </button>
+
+   <button class="btn2" onclick="shareReceipt()">
+    Bagikan Struk
+   </button>
+
+   <button class="btn2" onclick="returnToCashierWithSound()">
+    Kembali ke Kasir
+   </button>
+
   </div>
+
  </section>
+
 </div>
 
+<!-- HALAMAN PENGATURAN -->
 <div id="adminPage" class="page-view hidden-page">
+
  <section class="panel" style="max-width:600px;margin:20px auto">
+
   <h2>4. Pengaturan Toko</h2>
 
   <h3>Nama Toko</h3>
+
   <label>Nama toko</label>
   <input id="storeNameInput" type="text" maxlength="80" placeholder="Nama toko">
-  <button class="btn" onclick="saveStoreName()">Simpan Nama Toko</button>
+
+  <button class="btn" onclick="saveStoreName()">
+   Simpan Nama Toko
+  </button>
 
   <hr>
+
   <h3>Pengaturan QRIS</h3>
+
   <label>Upload / Ganti Gambar QRIS</label>
-  <input id="qrisImageInput" type="file" accept="image/*" onchange="handleQrisUpload(event)">
+
+  <input
+   id="qrisImageInput"
+   type="file"
+   accept="image/*"
+   onchange="handleQrisUpload(event)">
+
   <div class="center">
-   <img id="adminQrisPreview" alt="Preview QRIS" style="max-width:140px;width:100%;display:none">
+   <img id="adminQrisPreview"
+    alt="Preview QRIS"
+    style="max-width:140px;width:100%;display:none">
   </div>
-  <button class="btn2" style="width:100%;margin-top:6px" onclick="removeQrisImage()">Hapus Gambar QRIS</button>
-  <p class="note">Gambar QRIS tidak mengubah nominal secara otomatis.</p>
+
+  <button class="btn2"
+   style="width:100%;margin-top:6px"
+   onclick="removeQrisImage()">
+   Hapus Gambar QRIS
+  </button>
+
+  <p class="note">
+   Gambar QRIS tidak mengubah nominal secara otomatis.
+  </p>
 
   <hr>
+
   <h3>Kelola Menu dan Harga</h3>
+
   <div id="menuAdmin"></div>
+
   <hr>
+
   <h3 id="formTitle">Tambah Menu Baru</h3>
+
   <input id="editId" type="hidden">
+
   <label>Nama Menu</label>
   <input id="newName" type="text" placeholder="Contoh: Bubur Spesial">
+
   <label>Harga (rupiah)</label>
-  <input id="newPrice" type="number" min="0" step="500" inputmode="numeric" placeholder="Contoh: 12000">
+  <input id="newPrice"
+   type="number"
+   min="0"
+   step="500"
+   inputmode="numeric"
+   placeholder="Contoh: 12000">
+
   <div class="actions">
    <button class="btn" onclick="saveMenu()">Simpan Menu</button>
    <button class="btn2" onclick="cancelEdit()">Batal / Reset</button>
   </div>
-  <button class="btn2" style="width:100%;margin-top:15px" onclick="returnToCashierWithSound()">← Kembali ke Kasir</button>
+
+  <button class="btn2"
+   style="width:100%;margin-top:15px"
+   onclick="returnToCashierWithSound()">
+   ← Kembali ke Kasir
+  </button>
+
  </section>
+
 </div>
+
 </main>
 
 <script>
+
+/* DATA MENU */
+
 const DEFAULT_MENU=[
  {id:"polos",name:"Bubur Polos",price:5000},
  {id:"ori",name:"Bubur Original",price:9000},
@@ -242,15 +415,25 @@ function readJSON(key,fallback){
  try{
   const value=localStorage.getItem(key);
   return value===null?fallback:JSON.parse(value);
- }catch(e){return fallback}
+ }catch(e){
+  return fallback;
+ }
 }
 
 let MENU=readJSON("mangOpayMenu",DEFAULT_MENU);
-if(!Array.isArray(MENU)) MENU=DEFAULT_MENU.map(x=>({...x}));
+
+if(!Array.isArray(MENU)){
+ MENU=DEFAULT_MENU.map(x=>({...x}));
+}
+
 let qrisImage=localStorage.getItem("mangOpayQrisImg")||"";
 let cart={};
 let lastReceipt=null;
+
 const DEFAULT_STORE_NAME="BUBUR AYAM MANG OPAY";
+
+
+/* NAMA TOKO */
 
 function getStoreName(){
  return localStorage.getItem("mangOpayStoreName")||DEFAULT_STORE_NAME;
@@ -258,26 +441,42 @@ function getStoreName(){
 
 function saveStoreName(){
  const name=document.getElementById("storeNameInput").value.trim();
- if(!name){alert("Nama toko tidak boleh kosong.");return}
+
+ if(!name){
+  alert("Nama toko tidak boleh kosong.");
+  return;
+ }
+
  localStorage.setItem("mangOpayStoreName",name);
+
  renderStoreName();
+
  alert("Nama toko berhasil disimpan.");
 }
 
 function renderStoreName(){
  const name=getStoreName();
+
  document.getElementById("storeNameHeader").textContent=name;
  document.getElementById("receiptStoreName").textContent=name;
  document.getElementById("storeNameInput").value=name;
+
  document.title=name+" - Kasir";
 }
 
+
+/* SUARA */
+
 function playSound(id){
  const audio=document.getElementById(id);
+
  if(!audio)return;
+
  audio.pause();
  audio.currentTime=0;
+
  const p=audio.play();
+
  if(p)p.catch(e=>console.warn("Audio gagal diputar:",e));
 }
 
@@ -286,30 +485,51 @@ function returnToCashierWithSound(){
  backToCashierKeepingCart();
 }
 
+
+/* NAVIGASI HALAMAN */
+
 function switchPage(pageId){
+
  ["cashierPage","receiptPage","adminPage"].forEach(id=>{
   document.getElementById(id).classList.add("hidden-page");
  });
+
  document.getElementById(pageId).classList.remove("hidden-page");
+
  window.scrollTo(0,0);
- if(pageId==="adminPage")renderAdminQrisPreview();
+
+ if(pageId==="adminPage"){
+  renderAdminQrisPreview();
+ }
 }
 
 function backToCashierKeepingCart(){
  switchPage("cashierPage");
 }
 
+
+/* FORMAT RUPIAH */
+
 function rupiah(n){
  return new Intl.NumberFormat("id-ID",{
-  style:"currency",currency:"IDR",maximumFractionDigits:0
+  style:"currency",
+  currency:"IDR",
+  maximumFractionDigits:0
  }).format(n);
 }
 
 function escapeHTML(value){
  return String(value).replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
  }[c]));
 }
+
+
+/* SIMPAN MENU */
 
 function saveMenuData(){
  localStorage.setItem("mangOpayMenu",JSON.stringify(MENU));
@@ -319,160 +539,117 @@ function getTotal(){
  return MENU.reduce((sum,p)=>sum+p.price*(cart[p.id]||0),0);
 }
 
+
+/* TAMPILKAN MENU */
+
 function renderMenu(){
+
  document.getElementById("menu").innerHTML=MENU.map(p=>`
   <button onclick="addItem('${escapeHTML(p.id)}')">
-   <b>${escapeHTML(p.name)}</b><span>${rupiah(p.price)}</span>
-  </button>`).join("");
+   <b>${escapeHTML(p.name)}</b>
+   <span>${rupiah(p.price)}</span>
+  </button>
+ `).join("");
+
 }
 
 function addItem(id){
+
  if(!MENU.some(p=>p.id===id))return;
+
  cart[id]=(cart[id]||0)+1;
+
  renderCart();
 }
 
 function changeQty(id,amount){
+
  cart[id]=(cart[id]||0)+amount;
- if(cart[id]<=0)delete cart[id];
+
+ if(cart[id]<=0){
+  delete cart[id];
+ }
+
  renderCart();
 }
+
+
+/* KERANJANG */
 
 function renderCart(){
+
  const items=MENU.filter(p=>cart[p.id]);
+
  document.getElementById("cart").innerHTML=items.length?
+
  items.map(p=>`
   <div class="item">
-   <div><b>${escapeHTML(p.name)}</b><br><small>${rupiah(p.price)} × ${cart[p.id]}</small></div>
+
+   <div>
+    <b>${escapeHTML(p.name)}</b>
+    <br>
+    <small>${rupiah(p.price)} × ${cart[p.id]}</small>
+   </div>
+
    <div class="qty">
-    <button onclick="changeQty('${escapeHTML(p.id)}',-1)">−</button>
+
+    <button onclick="changeQty('${escapeHTML(p.id)}',-1)">
+     −
+    </button>
+
     <b>${cart[p.id]}</b>
-    <button onclick="changeQty('${escapeHTML(p.id)}',1)">+</button>
+
+    <button onclick="changeQty('${escapeHTML(p.id)}',1)">
+     +
+    </button>
+
    </div>
-  </div>`).join(""):'<div class="empty">Keranjang masih kosong.</div>';
+
+  </div>
+ `).join("")
+
+ :'<div class="empty">Keranjang masih kosong.</div>';
+
  document.getElementById("total").textContent=rupiah(getTotal());
+
 }
 
-function renderMenuAdmin(){
- document.getElementById("menuAdmin").innerHTML=MENU.length?
- MENU.map(p=>`
-  <div class="admin-row">
-   <b>${escapeHTML(p.name)}</b> — ${rupiah(p.price)}
-   <div class="admin-actions">
-    <button class="btn2" onclick="editMenu('${escapeHTML(p.id)}')">Edit</button>
-    <button class="btn2" onclick="deleteMenu('${escapeHTML(p.id)}')">Hapus</button>
-   </div>
-  </div>`).join(""):'<div class="empty">Belum ada menu.</div>';
-}
 
-function handleQrisUpload(event){
- const file=event.target.files[0];
- if(!file)return;
- if(file.size>3*1024*1024){
-  alert("Gunakan gambar QRIS maksimal 3 MB.");
-  event.target.value="";
-  return;
- }
- const reader=new FileReader();
- reader.onload=function(e){
-  try{
-   localStorage.setItem("mangOpayQrisImg",e.target.result);
-   qrisImage=e.target.result;
-   renderAdminQrisPreview();
-   alert("Gambar QRIS berhasil disimpan.");
-  }catch(err){
-   alert("Gambar terlalu besar untuk penyimpanan browser. Gunakan gambar lebih kecil.");
-  }
- };
- reader.readAsDataURL(file);
-}
+/* PILIHAN PEMBAYARAN */
 
-function renderAdminQrisPreview(){
- const img=document.getElementById("adminQrisPreview");
- if(qrisImage){img.src=qrisImage;img.style.display="inline-block"}
- else{img.src="";img.style.display="none"}
-}
+function selectPayment(method){
 
-function removeQrisImage(){
- if(confirm("Hapus gambar QRIS yang tersimpan?")){
-  qrisImage="";
-  localStorage.removeItem("mangOpayQrisImg");
-  document.getElementById("qrisImageInput").value="";
-  renderAdminQrisPreview();
-  alert("Gambar QRIS dihapus.");
- }
-}
+ document.getElementById("method").value=method;
 
-function saveMenu(){
- const id=document.getElementById("editId").value;
- const name=document.getElementById("newName").value.trim();
- const priceInput=document.getElementById("newPrice").value;
- const price=Number(priceInput);
+ document.getElementById("btnTunai")
+  .classList.toggle("active",method==="Tunai");
 
- if(!name){alert("Masukkan nama menu.");return}
- if(priceInput===""||!Number.isFinite(price)||price<0||!Number.isInteger(price)){
-  alert("Masukkan harga rupiah yang valid.");return;
- }
- if(id){
-  const p=MENU.find(x=>x.id===id);
-  if(!p){alert("Menu tidak ditemukan.");return}
-  p.name=name;
-  p.price=price;
- }else{
-  MENU.push({
-   id:"menu_"+Date.now()+"_"+Math.random().toString(36).slice(2,7),
-   name,price
-  });
- }
- saveMenuData();
- cancelEdit();
- renderMenu();
- renderMenuAdmin();
- renderCart();
-}
+ document.getElementById("btnQRIS")
+  .classList.toggle("active",method==="QRIS");
 
-function editMenu(id){
- const p=MENU.find(x=>x.id===id);
- if(!p)return;
- document.getElementById("editId").value=p.id;
- document.getElementById("newName").value=p.name;
- document.getElementById("newPrice").value=p.price;
- document.getElementById("formTitle").textContent="Edit Menu: "+p.name;
- document.getElementById("newName").scrollIntoView({
-  behavior:"smooth",block:"center"
- });
-}
+ togglePaidField();
 
-function cancelEdit(){
- document.getElementById("editId").value="";
- document.getElementById("newName").value="";
- document.getElementById("newPrice").value="";
- document.getElementById("formTitle").textContent="Tambah Menu Baru";
-}
-
-function deleteMenu(id){
- const p=MENU.find(x=>x.id===id);
- if(!p)return;
- if(!confirm('Hapus menu "'+p.name+'"?'))return;
- MENU=MENU.filter(x=>x.id!==id);
- delete cart[id];
- saveMenuData();
- cancelEdit();
- renderMenu();
- renderMenuAdmin();
- renderCart();
 }
 
 function togglePaidField(){
+
  const isCash=document.getElementById("method").value==="Tunai";
- document.getElementById("cashFields").classList.toggle("hidden",!isCash);
+
+ document.getElementById("cashFields")
+  .classList.toggle("hidden",!isCash);
+
  if(isCash&&document.getElementById("paid").value===""){
   document.getElementById("paid").value="50000";
  }
+
+
 }
 
-/* FITUR NOMINAL KELIPATAN 50 RIBU DAN 100 RIBU */
+
+/* PILIHAN NOMINAL TUNAI */
+
 function setCashPreset(step){
+
  const total=getTotal();
 
  if(total<=0){
@@ -484,186 +661,596 @@ function setCashPreset(step){
  const amount=Math.ceil(total/step)*step;
 
  document.getElementById("paid").value=amount;
+
 }
 
+
+/* ADMIN MENU */
+
+function renderMenuAdmin(){
+
+ document.getElementById("menuAdmin").innerHTML=MENU.length?
+
+ MENU.map(p=>`
+  <div class="admin-row">
+
+   <b>${escapeHTML(p.name)}</b> — ${rupiah(p.price)}
+
+   <div class="admin-actions">
+
+    <button class="btn2" onclick="editMenu('${escapeHTML(p.id)}')">
+     Edit
+    </button>
+
+    <button class="btn2" onclick="deleteMenu('${escapeHTML(p.id)}')">
+     Hapus
+    </button>
+
+   </div>
+
+  </div>
+ `).join("")
+
+ :'<div class="empty">Belum ada menu.</div>';
+
+}
+
+
+/* QRIS */
+
+function handleQrisUpload(event){
+
+ const file=event.target.files[0];
+
+ if(!file)return;
+
+ if(file.size>3*1024*1024){
+
+  alert("Gunakan gambar QRIS maksimal 3 MB.");
+
+  event.target.value="";
+
+  return;
+ }
+
+ const reader=new FileReader();
+
+ reader.onload=function(e){
+
+  try{
+
+   localStorage.setItem("mangOpayQrisImg",e.target.result);
+
+   qrisImage=e.target.result;
+
+   renderAdminQrisPreview();
+
+   alert("Gambar QRIS berhasil disimpan.");
+
+  }catch(err){
+
+   alert("Gambar terlalu besar untuk penyimpanan browser. Gunakan gambar lebih kecil.");
+
+  }
+
+ };
+
+ reader.readAsDataURL(file);
+
+}
+
+function renderAdminQrisPreview(){
+
+ const img=document.getElementById("adminQrisPreview");
+
+ if(qrisImage){
+
+  img.src=qrisImage;
+  img.style.display="inline-block";
+
+ }else{
+
+  img.src="";
+  img.style.display="none";
+
+ }
+
+}
+
+function removeQrisImage(){
+
+ if(confirm("Hapus gambar QRIS yang tersimpan?")){
+
+  qrisImage="";
+
+  localStorage.removeItem("mangOpayQrisImg");
+
+  document.getElementById("qrisImageInput").value="";
+
+  renderAdminQrisPreview();
+
+  alert("Gambar QRIS dihapus.");
+
+ }
+
+}
+
+
+/* TAMBAH DAN EDIT MENU */
+
+function saveMenu(){
+
+ const id=document.getElementById("editId").value;
+ const name=document.getElementById("newName").value.trim();
+ const priceInput=document.getElementById("newPrice").value;
+ const price=Number(priceInput);
+
+ if(!name){
+  alert("Masukkan nama menu.");
+  return;
+ }
+
+ if(priceInput===""||!Number.isFinite(price)||price<0||!Number.isInteger(price)){
+  alert("Masukkan harga rupiah yang valid.");
+  return;
+ }
+
+ if(id){
+
+  const p=MENU.find(x=>x.id===id);
+
+  if(!p){
+   alert("Menu tidak ditemukan.");
+   return;
+  }
+
+  p.name=name;
+  p.price=price;
+
+ }else{
+
+  MENU.push({
+   id:"menu_"+Date.now()+"_"+Math.random().toString(36).slice(2,7),
+   name,
+   price
+  });
+
+ }
+
+ saveMenuData();
+
+ cancelEdit();
+
+ renderMenu();
+ renderMenuAdmin();
+ renderCart();
+
+}
+
+function editMenu(id){
+
+ const p=MENU.find(x=>x.id===id);
+
+ if(!p)return;
+
+ document.getElementById("editId").value=p.id;
+ document.getElementById("newName").value=p.name;
+ document.getElementById("newPrice").value=p.price;
+
+ document.getElementById("formTitle").textContent="Edit Menu: "+p.name;
+
+ document.getElementById("newName").scrollIntoView({
+  behavior:"smooth",
+  block:"center"
+ });
+
+}
+
+function cancelEdit(){
+
+ document.getElementById("editId").value="";
+ document.getElementById("newName").value="";
+ document.getElementById("newPrice").value="";
+
+ document.getElementById("formTitle").textContent="Tambah Menu Baru";
+
+}
+
+function deleteMenu(id){
+
+ const p=MENU.find(x=>x.id===id);
+
+ if(!p)return;
+
+ if(!confirm('Hapus menu "'+p.name+'"?'))return;
+
+ MENU=MENU.filter(x=>x.id!==id);
+
+ delete cart[id];
+
+ saveMenuData();
+
+ cancelEdit();
+
+ renderMenu();
+ renderMenuAdmin();
+ renderCart();
+
+}
+
+
+/* RIWAYAT TRANSAKSI */
+
 function loadHistory(){
+
  const h=readJSON("mangOpayHistory",[]);
+
  return Array.isArray(h)?h:[];
+
 }
 
 function saveHistory(data){
+
  localStorage.setItem("mangOpayHistory",JSON.stringify(data));
+
 }
 
 function renderHistory(){
+
  const h=loadHistory();
+
  document.getElementById("history").innerHTML=h.length?
+
  h.slice().reverse().map(r=>`
+
   <div class="history">
-   <b>${escapeHTML(r.id)}</b><br>${escapeHTML(r.date)}<br>
-   Total: ${rupiah(r.total)}<br>${escapeHTML(r.method)} — ${escapeHTML(r.status)}
-   ${r.method==="Tunai"&&Number.isFinite(r.change)?"<br>Kembalian: "+rupiah(r.change):""}
-  </div>`).join(""):'<div class="empty">Belum ada transaksi.</div>';
+
+   <b>${escapeHTML(r.id)}</b>
+   <br>
+   ${escapeHTML(r.date)}
+   <br>
+   Total: ${rupiah(r.total)}
+   <br>
+   ${escapeHTML(r.method)} — ${escapeHTML(r.status)}
+
+   ${r.method==="Tunai"&&Number.isFinite(r.change)?
+    "<br>Kembalian: "+rupiah(r.change):""}
+
+  </div>
+
+ `).join("")
+
+ :'<div class="empty">Belum ada transaksi.</div>';
+
 }
 
+
+/* CHECKOUT / BUAT STRUK */
+
 function checkout(){
+
  const total=getTotal();
+
  if(total<=0){
+
   alert("Pilih menu terlebih dahulu.");
+
   return;
  }
 
  const method=document.getElementById("method").value;
  const paidInput=document.getElementById("paid").value;
+
  const paid=method==="Tunai"?Number(paidInput||0):null;
+
  let status="MENUNGGU VERIFIKASI QRIS";
  let change=null;
 
  if(method==="Tunai"){
+
   if(paidInput===""||!Number.isFinite(paid)||paid<total){
+
    alert("Uang diterima harus sama dengan atau lebih besar dari total belanja.");
+
    return;
   }
+
   change=paid-total;
+
   status="LUNAS - TUNAI DICATAT KASIR";
+
  }
 
  playSound("printSound");
 
  const now=new Date();
- const id="OP-"+now.getFullYear()+
+
+ const id="OP-"+
+  now.getFullYear()+
   String(now.getMonth()+1).padStart(2,"0")+
-  String(now.getDate()).padStart(2,"0")+"-"+String(now.getTime()).slice(-6);
+  String(now.getDate()).padStart(2,"0")+"-"+
+  String(now.getTime()).slice(-6);
 
  const receipt={
+
   id:id,
+
   date:now.toLocaleString("id-ID"),
+
   storeName:getStoreName(),
+
   items:MENU.filter(p=>cart[p.id]).map(p=>({
-   name:p.name,price:p.price,qty:cart[p.id]
+   name:p.name,
+   price:p.price,
+   qty:cart[p.id]
   })),
+
   total:total,
+
   method:method,
+
   status:status,
+
   paid:paid,
+
   change:change
+
  };
+
  lastReceipt=receipt;
 
  document.getElementById("receiptMeta").innerHTML=`
-  <div class="line"><span>No.</span><span>${escapeHTML(id)}</span></div>
-  <div class="line"><span>Waktu</span><span>${escapeHTML(receipt.date)}</span></div>`;
+
+  <div class="line">
+   <span>No.</span>
+   <span>${escapeHTML(id)}</span>
+  </div>
+
+  <div class="line">
+   <span>Waktu</span>
+   <span>${escapeHTML(receipt.date)}</span>
+  </div>
+
+ `;
 
  document.getElementById("receiptItems").innerHTML=receipt.items.map(i=>`
+
   <div>${escapeHTML(i.name)} × ${i.qty}</div>
-  <div class="line"><span>${rupiah(i.price)} × ${i.qty}</span><span>${rupiah(i.price*i.qty)}</span></div>
+
+  <div class="line">
+   <span>${rupiah(i.price)} × ${i.qty}</span>
+   <span>${rupiah(i.price*i.qty)}</span>
+  </div>
+
  `).join("");
 
  document.getElementById("receiptStoreName").textContent=receipt.storeName;
+
  document.getElementById("receiptTotal").textContent=rupiah(total);
+
  document.getElementById("receiptMethod").textContent=method;
+
  document.getElementById("receiptStatus").textContent=status;
 
  document.getElementById("receiptCashDetails").innerHTML=
+
   method==="Tunai"?`
-   <div class="line"><span>Uang diterima</span><span>${rupiah(paid)}</span></div>
-   <div class="line"><b>KEMBALIAN</b><b>${rupiah(change)}</b></div>
+
+   <div class="line">
+    <span>Uang diterima</span>
+    <span>${rupiah(paid)}</span>
+   </div>
+
+   <div class="line">
+    <b>KEMBALIAN</b>
+    <b>${rupiah(change)}</b>
+   </div>
+
   `:"";
 
  const qrisDetails=document.getElementById("receiptQrisDetails");
+
  if(method==="QRIS"&&qrisImage){
+
   document.getElementById("receiptQrisImg").src=qrisImage;
+
   qrisDetails.classList.remove("hidden");
+
  }else{
+
   qrisDetails.classList.add("hidden");
+
  }
 
  switchPage("receiptPage");
+
 }
 
+
+/* CETAK STRUK */
+
 function finishAndPrintReceipt(){
+
  if(!lastReceipt){
+
   alert("Struk belum tersedia.");
+
   return;
  }
 
  const h=loadHistory();
+
  h.push(lastReceipt);
+
  saveHistory(h);
+
  renderHistory();
+
  clearCart();
+
  window.print();
+
  switchPage("cashierPage");
+
 }
+
+
+/* KOSONGKAN KERANJANG */
 
 function clearCart(){
+
  cart={};
+
  document.getElementById("paid").value="50000";
+
  renderCart();
+
 }
 
+
+/* BAGIKAN STRUK */
+
 async function shareReceipt(){
+
  if(!lastReceipt){
+
   alert("Buat struk terlebih dahulu.");
+
   return;
  }
+
  const r=lastReceipt;
- let text=(r.storeName||getStoreName())+"\nStruk: "+r.id+"\n"+r.date+
+
+ let text=(r.storeName||getStoreName())+
+  "\nStruk: "+r.id+
+  "\n"+r.date+
   "\n--------------------\n"+
-  r.items.map(i=>i.name+" x"+i.qty+" "+rupiah(i.price*i.qty)).join("\n")+
+
+  r.items.map(i=>
+   i.name+" x"+i.qty+" "+rupiah(i.price*i.qty)
+  ).join("\n")+
+
   "\n--------------------\nTOTAL: "+rupiah(r.total);
 
  if(r.method==="Tunai"){
-  text+="\nUang diterima: "+rupiah(r.paid)+"\nKembalian: "+rupiah(r.change);
+
+  text+="\nUang diterima: "+rupiah(r.paid)+
+   "\nKembalian: "+rupiah(r.change);
+
  }
- text+="\nMetode: "+r.method+"\nStatus: "+r.status+"\nTerima kasih.";
+
+ text+="\nMetode: "+r.method+
+  "\nStatus: "+r.status+
+  "\nTerima kasih.";
 
  try{
+
   if(navigator.share){
-   await navigator.share({title:"Struk "+(r.storeName||getStoreName()),text:text});
+
+   await navigator.share({
+    title:"Struk "+(r.storeName||getStoreName()),
+    text:text
+   });
+
   }else{
+
    prompt("Salin teks struk berikut:",text);
+
   }
+
  }catch(e){}
+
 }
+
+
+/* EKSPOR CSV */
 
 function exportCSV(){
+
  const h=loadHistory();
+
  if(!h.length){
+
   alert("Belum ada transaksi.");
+
   return;
  }
+
  const rows=[
+
   ["ID","Tanggal","Nama Toko","Total","Metode","Status","Uang Diterima","Kembalian","Rincian"],
+
   ...h.map(r=>[
-   r.id,r.date,r.storeName||getStoreName(),r.total,r.method,r.status,
-   r.paid??"",r.change??"",r.items.map(i=>i.name+" x"+i.qty).join("; ")
+
+   r.id,
+   r.date,
+   r.storeName||getStoreName(),
+   r.total,
+   r.method,
+   r.status,
+   r.paid??"",
+   r.change??"",
+   r.items.map(i=>i.name+" x"+i.qty).join("; ")
+
   ])
+
  ];
- const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
- const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
+
+ const csv=rows.map(row=>
+  row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")
+ ).join("\r\n");
+
+ const blob=new Blob(["\ufeff"+csv],{
+  type:"text/csv;charset=utf-8;"
+ });
+
  const url=URL.createObjectURL(blob);
+
  const a=document.createElement("a");
+
  a.href=url;
+
  a.download="riwayat-mang-opay.csv";
+
  a.click();
+
  setTimeout(()=>URL.revokeObjectURL(url),1000);
+
 }
+
+
+/* RESET RIWAYAT */
 
 function clearHistory(){
+
  if(confirm("Yakin ingin menghapus SEMUA riwayat transaksi? Daftar menu dan harga tidak akan terhapus.")){
+
   saveHistory([]);
+
   renderHistory();
+
   alert("Riwayat transaksi berhasil direset.");
+
  }
+
 }
 
+
+/* INISIALISASI APLIKASI */
+
 renderStoreName();
+
 renderMenu();
+
 renderCart();
+
 renderMenuAdmin();
+
 renderHistory();
-togglePaidField();
+
+selectPayment("QRIS");
+
 </script>
+
 </body>
 </html>
