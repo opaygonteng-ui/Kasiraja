@@ -49,6 +49,34 @@ hr{border:0;border-top:1px dashed #a3b899;margin:10px 0}
 .admin-actions{display:flex;gap:6px;margin-top:6px}
 .admin-actions button{flex:1}
 .empty{color:#748a82;padding:10px 0;font-size:13px;text-align:center}
+
+/* PILIHAN NOMINAL UANG TUNAI */
+.cash-presets{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:8px;
+ margin-top:8px;
+}
+.cash-presets button{
+ padding:11px 5px;
+ border:1px solid #2d6a4f;
+ border-radius:8px;
+ background:#eaf5ed;
+ color:#1b4332;
+ font-weight:bold;
+ font-size:13px;
+}
+.cash-presets button:active{
+ background:#2d6a4f;
+ color:white;
+}
+.cash-presets small{
+ display:block;
+ font-size:10px;
+ font-weight:normal;
+ margin-top:3px;
+}
+
 @media print{
  body{background:white}
  header,main>div:not(#receiptPage){display:none!important}
@@ -94,6 +122,20 @@ hr{border:0;border-top:1px dashed #a3b899;margin:10px 0}
    <div id="cashFields" class="hidden">
     <label>Uang Diterima</label>
     <input id="paid" type="number" min="0" inputmode="numeric" value="50000">
+
+    <!-- PILIHAN KELIPATAN NOMINAL -->
+    <div class="cash-presets">
+     <button type="button" onclick="setCashPreset(50000)">
+      Rp50.000
+      <small>Kelipatan 50 ribu</small>
+     </button>
+     <button type="button" onclick="setCashPreset(100000)">
+      Rp100.000
+      <small>Kelipatan 100 ribu</small>
+     </button>
+    </div>
+
+    <p class="note">Nominal otomatis disesuaikan dengan total belanja.</p>
    </div>
 
    <div class="actions">
@@ -429,6 +471,21 @@ function togglePaidField(){
  }
 }
 
+/* FITUR NOMINAL KELIPATAN 50 RIBU DAN 100 RIBU */
+function setCashPreset(step){
+ const total=getTotal();
+
+ if(total<=0){
+  alert("Pilih menu terlebih dahulu.");
+  return;
+ }
+
+ // Menghitung kelipatan terkecil yang mencukupi total belanja.
+ const amount=Math.ceil(total/step)*step;
+
+ document.getElementById("paid").value=amount;
+}
+
 function loadHistory(){
  const h=readJSON("mangOpayHistory",[]);
  return Array.isArray(h)?h:[];
@@ -471,7 +528,6 @@ function checkout(){
   status="LUNAS - TUNAI DICATAT KASIR";
  }
 
- // Suara diputar ketika tombol Buat Struk di halaman Kasir ditekan.
  playSound("printSound");
 
  const now=new Date();
@@ -525,7 +581,6 @@ function checkout(){
  switchPage("receiptPage");
 }
 
-// Tombol cetak hanya mencetak struk, tanpa memutar suara print lagi.
 function finishAndPrintReceipt(){
  if(!lastReceipt){
   alert("Struk belum tersedia.");
